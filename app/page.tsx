@@ -1,65 +1,162 @@
-import Image from "next/image";
+'use client';
+
+import { FeeBreakdown } from '../src/components/FeeRadar/FeeBreakdown';
+import { Radar, Github, ExternalLink } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* ─── Ambient Background ──────────────────────────────── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/[0.03] blur-[120px] animate-float" />
+        <div
+          className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-600/[0.03] blur-[120px] animate-float"
+          style={{ animationDelay: '3s' }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
+        <div
+          className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-amber-400/[0.02] blur-[100px] animate-float"
+          style={{ animationDelay: '1.5s' }}
+        />
+      </div>
+
+      {/* ─── Header ──────────────────────────────────────────── */}
+      <header className="relative z-10 w-full border-b border-zinc-800/50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 animate-pulse-glow">
+              <Radar className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight text-zinc-100">
+                Fee-Radar
+              </h1>
+              <p className="text-[10px] text-zinc-500 -mt-0.5 uppercase tracking-widest">
+                Cross-Layer Cost Estimator
+              </p>
+            </div>
+          </div>
+          <nav className="flex items-center gap-4">
             <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              href="https://dev.rootstock.io/concepts/powpeg/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
+              Docs <ExternalLink className="h-3 w-3" />
+            </a>
             <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              href="https://github.com/rsksmart"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
             >
-              Learning
-            </a>{" "}
-            center.
+              <Github className="h-4 w-4" />
+            </a>
+          </nav>
+        </div>
+      </header>
+
+      {/* ─── Main Content ────────────────────────────────────── */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
+        {/* Hero */}
+        <div className="text-center mb-10 animate-fade-in max-w-xl">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-100 mb-3">
+            Know the{' '}
+            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent animate-gradient">
+              true cost
+            </span>{' '}
+            before you bridge
+          </h2>
+          <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
+            Standard wallets only show the Rootstock gas fee. Fee-Radar breaks down
+            every cost layer — L2 gas, bridge fees, and L1 miner fees — so you know
+            exactly what you&apos;ll receive on Bitcoin.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* The Widget */}
+        <FeeBreakdown />
+
+        {/* Info cards below the widget */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-lg w-full animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <InfoCard
+            emoji="⚡"
+            title="Real-Time"
+            description="Fees update every 30–60s from live APIs"
+          />
+          <InfoCard
+            emoji="🔍"
+            title="Transparent"
+            description="See exactly where every satoshi goes"
+          />
+          <InfoCard
+            emoji="🛡️"
+            title="Safe"
+            description="10% buffer to prevent underpayment"
+          />
         </div>
       </main>
+
+      {/* ─── Footer ──────────────────────────────────────────── */}
+      <footer className="relative z-10 border-t border-zinc-800/50">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-xs text-zinc-600">
+            Fee-Radar · Powered by{' '}
+            <a
+              href="https://mempool.space"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Mempool.space
+            </a>
+            {' '}&{' '}
+            <a
+              href="https://rootstock.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Rootstock
+            </a>
+          </p>
+          <div className="flex items-center gap-3">
+            <StatusDot label="Mempool API" />
+            <StatusDot label="RSK RPC" />
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ─── Sub-components ─────────────────────────────────────────────
+
+function InfoCard({
+  emoji,
+  title,
+  description,
+}: {
+  emoji: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800/30 text-center hover:border-zinc-700/50 transition-all duration-300">
+      <span className="text-xl">{emoji}</span>
+      <h3 className="text-sm font-semibold text-zinc-200 mt-2">{title}</h3>
+      <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function StatusDot({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+      <span className="text-[10px] text-zinc-600">{label}</span>
     </div>
   );
 }

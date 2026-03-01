@@ -1,3 +1,6 @@
+![Rootstock Banner](https://raw.githubusercontent.com/rsksmart/devportal/main/rootstock-logo.png)
+
+
 # 🎯 Fee-Radar: The Cross-Layer Cost Estimator
 
 **Fee-Radar** provides an "Amazon Checkout" experience for Rootstock (RSK) users Pegging Out to the Bitcoin network. Stop getting surprised by hidden L1 release fees.

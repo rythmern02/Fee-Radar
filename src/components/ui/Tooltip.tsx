@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { cn } from '../../lib/utils';
 
 interface TooltipProps {
@@ -14,6 +14,7 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
     const [isOpen, setIsOpen] = useState(false);
     const tooltipRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
+    const id = useId();
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -37,13 +38,22 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
                 onMouseEnter={() => setIsOpen(true)}
                 onMouseLeave={() => setIsOpen(false)}
                 onClick={() => setIsOpen(!isOpen)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        setIsOpen(!isOpen);
+                    }
+                }}
                 className="cursor-help"
+                aria-describedby={id}
+                tabIndex={0}
             >
                 {children}
             </div>
             {isOpen && (
                 <div
                     ref={tooltipRef}
+                    id={id}
+                    role="tooltip"
                     className={cn(
                         'absolute z-50 max-w-xs px-3 py-2 text-xs leading-relaxed',
                         'bg-zinc-800 text-zinc-200 rounded-lg border border-zinc-700/50',

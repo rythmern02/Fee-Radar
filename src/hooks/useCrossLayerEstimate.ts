@@ -8,10 +8,10 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { FeeBreakdownResult, FeeSpeed, BridgeType } from '../types';
-import { fetchBitcoinFeeRates } from '../api/bitcoin';
-import { fetchRskGasPrice } from '../api/rootstock';
+import { fetchBitcoinFeeRates, getFallbackFeeRates } from '../api/bitcoin';
+import { fetchRskGasPrice, getFallbackGasPrice } from '../api/rootstock';
 import { calculateTotalCost, validatePegoutAmount } from '../lib/calculators/bridgeLogic';
 import { btcToSats, formatBtc, isValidBtcAmount } from '../lib/utils';
 import {
@@ -21,9 +21,13 @@ import {
     BTC_FEE_STALE_TIME,
 } from '../lib/constants';
 
+// Direction of transfer
+export type BridgeDirection = 'peg-in' | 'peg-out';
+
 interface UseCrossLayerEstimateOptions {
     amount: string;      // BTC amount as string (e.g., "0.5")
     speed: FeeSpeed;
+    direction?: BridgeDirection; // Added direction parameter
     bridgeType?: BridgeType;
     btcUsd?: number | null;
 }
@@ -32,6 +36,7 @@ interface UseCrossLayerEstimateResult {
     data: FeeBreakdownResult | null;
     isLoading: boolean;
     isError: boolean;
+    isStale: boolean; // Added isStale flag
     error: Error | null;
     refetch: () => void;
     validationError: string | null;
@@ -40,6 +45,7 @@ interface UseCrossLayerEstimateResult {
 export function useCrossLayerEstimate({
     amount,
     speed,
+    direction = 'peg-out',
     bridgeType = 'powpeg',
     btcUsd = null,
 }: UseCrossLayerEstimateOptions): UseCrossLayerEstimateResult {
@@ -53,6 +59,7 @@ export function useCrossLayerEstimate({
         staleTime: BTC_FEE_STALE_TIME,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+        placeholderData: getFallbackFeeRates,
     });
 
     // ─── RSK Gas Price Query ────────────────────────────────────
@@ -63,20 +70,26 @@ export function useCrossLayerEstimate({
         staleTime: RSK_GAS_STALE_TIME,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+        placeholderData: getFallbackGasPrice,
     });
 
     // ─── Validation ─────────────────────────────────────────────
     const validationError = useMemo(() => {
         if (!amount || !isValidBtcAmount(amount)) return null; // No error if empty
-        const sats = btcToSats(amount);
-        const validation = validatePegoutAmount(sats);
-        return validation.valid ? null : (validation.error ?? null);
+        try {
+            const sats = btcToSats(amount);
+            const validation = validatePegoutAmount(sats);
+            return validation.valid ? null : (validation.error ?? null);
+        } catch (e: unknown) {
+            return (e instanceof Error) ? e.message : 'Invalid amount';
+        }
     }, [amount]);
 
     // ─── Compute Breakdown ──────────────────────────────────────
     const data = useMemo((): FeeBreakdownResult | null => {
         if (!isValidBtcAmount(amount)) return null;
         if (!btcFeesQuery.data || !rskGasQuery.data) return null;
+        if (direction !== 'peg-out') return null; // Bridge currently only supports peg-out logic
 
         const amountSats = btcToSats(amount);
         const validation = validatePegoutAmount(amountSats);
@@ -91,6 +104,14 @@ export function useCrossLayerEstimate({
             btcUsd,
         });
 
+        const totalFeeUsd = btcUsd
+            ? (Number(result.totalFeeSats * 1000000n / 100000000n) / 1000000) * btcUsd
+            : null;
+
+        const netAmountUsd = btcUsd
+            ? (Number(result.netAmountSats * 1000000n / 100000000n) / 1000000) * btcUsd
+            : null;
+
         return {
             inputAmountSats: amountSats,
             inputAmountBtc: amount,
@@ -101,32 +122,35 @@ export function useCrossLayerEstimate({
             btcMinerFee: result.btcMinerFee,
             totalFeeSats: result.totalFeeSats,
             totalFeeBtc: formatBtc(result.totalFeeSats),
-            totalFeeUsd: btcUsd
-                ? (Number(result.totalFeeSats) / 1e8) * btcUsd
-                : null,
+            totalFeeUsd,
             netAmountSats: result.netAmountSats,
             netAmountBtc: formatBtc(result.netAmountSats),
-            netAmountUsd: btcUsd
-                ? (Number(result.netAmountSats) / 1e8) * btcUsd
-                : null,
+            netAmountUsd,
             feeDominance: result.feeDominance,
             btcFeeRate: result.btcFeeRate,
             rskGasPrice: rskGasQuery.data,
             estimatedVBytes: result.estimatedVBytes,
             timestamp: Date.now(),
         };
-    }, [amount, speed, bridgeType, btcFeesQuery.data, rskGasQuery.data, btcUsd]);
+    }, [amount, speed, direction, bridgeType, btcFeesQuery.data, rskGasQuery.data, btcUsd]);
 
-    const refetch = () => {
+    const refetch = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['btcFeeRates'] });
         queryClient.invalidateQueries({ queryKey: ['rskGasPrice'] });
+    }, [queryClient]);
+
+    const normalizeError = (err: unknown): Error | null => {
+        if (!err) return null;
+        if (err instanceof Error) return err;
+        return new Error(String(err));
     };
 
     return {
         data,
         isLoading: btcFeesQuery.isLoading || rskGasQuery.isLoading,
         isError: btcFeesQuery.isError || rskGasQuery.isError,
-        error: btcFeesQuery.error || rskGasQuery.error || null,
+        isStale: btcFeesQuery.isStale || rskGasQuery.isStale,
+        error: normalizeError(btcFeesQuery.error || rskGasQuery.error),
         refetch,
         validationError,
     };

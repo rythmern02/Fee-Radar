@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Info } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 
@@ -34,7 +35,7 @@ const EXPLANATIONS: Record<string, { title: string; body: string }> = {
     },
 };
 
-export function TooltipInfo({ term }: TooltipInfoProps) {
+export const TooltipInfo = memo(function TooltipInfo({ term }: TooltipInfoProps) {
     const info = EXPLANATIONS[term];
     if (!info) return null;
 
@@ -51,4 +52,4 @@ export function TooltipInfo({ term }: TooltipInfoProps) {
             <Info className="h-3.5 w-3.5 text-zinc-500 hover:text-zinc-300 transition-colors" />
         </Tooltip>
     );
-}
+});

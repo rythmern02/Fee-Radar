@@ -1,24 +1,36 @@
 'use client';
 
+import { memo } from 'react';
+import { Cpu, Landmark, Bitcoin } from 'lucide-react';
 import type { CostItem } from '../../types';
 import { formatUsd, formatPercentage } from '../../lib/utils';
 import { TooltipInfo } from './TooltipInfo';
 
+type IconName = 'cpu' | 'landmark' | 'bitcoin';
+
 interface CostRowProps {
     item: CostItem;
-    icon: React.ReactNode;
+    iconName: IconName;
     tooltipTerm?: 'powpeg' | 'flyover' | 'btcMiner' | 'rskGas' | 'vbytes' | 'feeDominance';
     accentColor?: string;
     isHighlighted?: boolean;
 }
 
-export function CostRow({
+const ICONS: Record<IconName, React.ReactNode> = {
+    cpu: <Cpu className="h-4 w-4" />,
+    landmark: <Landmark className="h-4 w-4" />,
+    bitcoin: <Bitcoin className="h-4 w-4" />,
+};
+
+export const CostRow = memo(function CostRow({
     item,
-    icon,
+    iconName,
     tooltipTerm,
     accentColor = 'bg-zinc-600',
     isHighlighted = false,
 }: CostRowProps) {
+    const icon = ICONS[iconName];
+
     return (
         <div
             className={`
@@ -51,7 +63,7 @@ export function CostRow({
                     </div>
                     {/* Percentage bar */}
                     <div className="flex items-center gap-2 mt-1">
-                        <div className="w-16 h-1 rounded-full bg-zinc-800 overflow-hidden">
+                        <div className="max-w-[64px] w-full h-1 rounded-full bg-zinc-800 overflow-hidden">
                             <div
                                 className={`h-full rounded-full transition-all duration-700 ease-out ${accentColor}`}
                                 style={{ width: `${Math.min(item.percentage, 100)}%` }}
@@ -77,4 +89,4 @@ export function CostRow({
             </div>
         </div>
     );
-}
+});

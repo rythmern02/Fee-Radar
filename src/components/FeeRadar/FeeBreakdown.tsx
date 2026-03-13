@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useDeferredValue } from 'react';
 import {
     Zap,
     Clock,
@@ -8,7 +8,6 @@ import {
     ArrowDownUp,
     AlertTriangle,
     RefreshCw,
-    Cpu,
     Landmark,
     Bitcoin,
     ChevronDown,
@@ -59,13 +58,14 @@ const BRIDGE_OPTIONS: { value: BridgeType; label: string }[] = [
 
 export function FeeBreakdown() {
     const [amount, setAmount] = useState('0.5');
+    const deferredAmount = useDeferredValue(amount);
     const [speed, setSpeed] = useState<FeeSpeed>('medium');
     const [bridgeType, setBridgeType] = useState<BridgeType>('powpeg');
     const [showBridgeSelector, setShowBridgeSelector] = useState(false);
 
     const { btcUsd } = useExchangeRate();
-    const { data, isLoading, isError, error, refetch, validationError } =
-        useCrossLayerEstimate({ amount, speed, bridgeType, btcUsd });
+    const { data, isLoading, isError, isStale, error, refetch, validationError } =
+        useCrossLayerEstimate({ amount: deferredAmount, speed, bridgeType, btcUsd });
 
     const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -96,13 +96,20 @@ export function FeeBreakdown() {
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={refetch}
-                        className="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-all duration-200"
-                        title="Refresh fees"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {isStale && (
+                            <Badge variant="default" className="text-[10px] text-zinc-500 border-zinc-800">
+                                Stale Data
+                            </Badge>
+                        )}
+                        <button
+                            onClick={refetch}
+                            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 transition-all duration-200"
+                            title="Refresh fees"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
                 </div>
             </CardHeader>
 
@@ -161,13 +168,13 @@ export function FeeBreakdown() {
                                 key={option.value}
                                 onClick={() => setSpeed(option.value)}
                                 className={`
-                  flex flex-col items-center gap-1 py-2.5 px-3 rounded-xl
-                  border text-center transition-all duration-200
-                  ${speed === option.value
+                                  flex flex-col items-center gap-1 py-2.5 px-3 rounded-xl
+                                  border text-center transition-all duration-200
+                                  ${speed === option.value
                                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-lg shadow-amber-500/5'
                                         : 'bg-zinc-800/30 border-zinc-700/30 text-zinc-400 hover:bg-zinc-800/50 hover:border-zinc-600/50'
                                     }
-                `}
+                                `}
                             >
                                 {option.icon}
                                 <span className="text-xs font-semibold">{option.label}</span>
@@ -207,12 +214,12 @@ export function FeeBreakdown() {
                                     setShowBridgeSelector(false);
                                 }}
                                 className={`
-                  flex-1 py-2 rounded-lg text-xs font-medium border transition-all
-                  ${bridgeType === opt.value
+                                  flex-1 py-2 rounded-lg text-xs font-medium border transition-all
+                                  ${bridgeType === opt.value
                                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                                         : 'bg-zinc-800/30 border-zinc-700/30 text-zinc-400 hover:bg-zinc-800/50'
                                     }
-                `}
+                                `}
                             >
                                 {opt.label}
                             </button>
@@ -249,7 +256,7 @@ export function FeeBreakdown() {
                             {/* RSK Gas */}
                             <CostRow
                                 item={data.rskGas}
-                                icon={<Cpu className="h-4 w-4" />}
+                                iconName="cpu"
                                 tooltipTerm="rskGas"
                                 accentColor="bg-emerald-500"
                             />
@@ -257,7 +264,7 @@ export function FeeBreakdown() {
                             {/* Bridge Fee */}
                             <CostRow
                                 item={data.bridgeFee}
-                                icon={<Landmark className="h-4 w-4" />}
+                                iconName="landmark"
                                 tooltipTerm={data.bridgeType === 'powpeg' ? 'powpeg' : 'flyover'}
                                 accentColor="bg-blue-500"
                             />
@@ -265,7 +272,7 @@ export function FeeBreakdown() {
                             {/* BTC Miner Fee */}
                             <CostRow
                                 item={data.btcMinerFee}
-                                icon={<Bitcoin className="h-4 w-4" />}
+                                iconName="bitcoin"
                                 tooltipTerm="btcMiner"
                                 accentColor="bg-amber-500"
                                 isHighlighted={data.feeDominance.isWarning && data.feeDominance.dominantFee === 'Bitcoin Miner Fee'}
@@ -316,15 +323,25 @@ export function FeeBreakdown() {
                                 </div>
 
                                 {/* Net Amount */}
-                                <div className="flex items-center justify-between p-3 -mx-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                                <div className={`
+                                  flex items-center justify-between p-3 -mx-3 rounded-xl border transition-all
+                                  ${data.netAmountSats === 0n 
+                                    ? 'bg-red-500/5 border-red-500/10' 
+                                    : 'bg-emerald-500/5 border-emerald-500/10'}
+                                `}>
                                     <div className="flex items-center gap-2">
-                                        <ArrowRight className="h-4 w-4 text-emerald-400" />
-                                        <span className="text-sm font-semibold text-zinc-200">
-                                            You Receive
-                                        </span>
+                                        <ArrowRight className={`h-4 w-4 ${data.netAmountSats === 0n ? 'text-red-400' : 'text-emerald-400'}`} />
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-semibold text-zinc-200">
+                                                You Receive
+                                            </span>
+                                            {data.netAmountSats === 0n && (
+                                                <span className="text-[10px] text-red-400 font-medium">Fees exceed amount</span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-lg font-bold text-emerald-400 font-mono tabular-nums">
+                                        <span className={`text-lg font-bold font-mono tabular-nums ${data.netAmountSats === 0n ? 'text-red-400' : 'text-emerald-400'}`}>
                                             {data.netAmountBtc} BTC
                                         </span>
                                         {data.netAmountUsd !== null && (
@@ -380,7 +397,7 @@ export function FeeBreakdown() {
                                     <span>
                                         RSK Gas: {weiToGwei(data.rskGasPrice)} gwei
                                     </span>
-                                    <span>
+                                    <span suppressHydrationWarning>
                                         Updated {new Date(data.timestamp).toLocaleTimeString()}
                                     </span>
                                 </div>

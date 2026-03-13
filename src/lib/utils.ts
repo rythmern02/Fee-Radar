@@ -16,9 +16,16 @@ export function satsToBtc(sats: bigint): string {
 }
 
 export function btcToSats(btc: string): bigint {
+    if (/e/i.test(btc)) {
+        throw new Error('Scientific notation not supported');
+    }
     const parts = btc.split('.');
     const wholePart = parts[0] || '0';
-    const fracPart = (parts[1] || '').padEnd(8, '0').slice(0, 8);
+    let fracPart = parts[1] || '';
+    if (fracPart.length > 8) {
+        throw new Error('More than 8 decimal places not supported');
+    }
+    fracPart = fracPart.padEnd(8, '0').slice(0, 8);
     return BigInt(wholePart) * SATS_PER_BTC + BigInt(fracPart);
 }
 
@@ -40,13 +47,15 @@ export function weiToGwei(wei: bigint): string {
 export function formatBtc(sats: bigint): string {
     const btc = satsToBtc(sats);
     // Remove trailing zeros but keep at least 4 decimals
-    const [whole, frac] = btc.split('.');
+    const parts = btc.split('.');
+    const whole = parts[0] || '0';
+    const frac = parts[1] || '00000000';
     const trimmed = frac.replace(/0+$/, '').padEnd(4, '0');
     return `${whole}.${trimmed}`;
 }
 
 export function formatSats(sats: bigint): string {
-    return Number(sats).toLocaleString('en-US');
+    return sats.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 export function formatUsd(amount: number): string {
@@ -65,6 +74,7 @@ export function formatPercentage(value: number): string {
 // ─── Validation ─────────────────────────────────────────────────
 export function isValidBtcAmount(input: string): boolean {
     if (!input || input.trim() === '') return false;
+    if (/e/i.test(input)) return false;
     const num = Number(input);
     if (isNaN(num) || num <= 0) return false;
     // Check decimal places (max 8)
@@ -84,7 +94,9 @@ export function bigIntMin(a: bigint, b: bigint): bigint {
 
 /** Apply a percentage to a bigint amount (e.g., 0.002 for 0.2%) */
 export function applyPercentage(amount: bigint, percentage: number): bigint {
+    if (amount === 0n || percentage === 0) return 0n;
     // Multiply by 1e8 for precision, then divide
-    const multiplier = BigInt(Math.round(percentage * 1e8));
-    return (amount * multiplier) / 100_000_000n;
+    const multiplier = BigInt(Math.round(percentage * 100_000_000));
+    const result = (amount * multiplier) / 100_000_000n;
+    return (result === 0n && amount > 0n && percentage > 0) ? 1n : result;
 }

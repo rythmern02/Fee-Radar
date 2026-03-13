@@ -71,9 +71,9 @@ export const BTC_FEE_POLL_INTERVAL = 60_000;    // 60 seconds
 export const EXCHANGE_RATE_POLL_INTERVAL = 300_000; // 5 minutes
 
 // Stale times
-export const RSK_GAS_STALE_TIME = 15_000;       // 15 seconds
-export const BTC_FEE_STALE_TIME = 30_000;       // 30 seconds
-export const EXCHANGE_RATE_STALE_TIME = 120_000; // 2 minutes
+export const RSK_GAS_STALE_TIME = 30_000;       // 30 seconds
+export const BTC_FEE_STALE_TIME = 60_000;       // 60 seconds
+export const EXCHANGE_RATE_STALE_TIME = 300_000; // 5 minutes
 
 // ─── Conversion Constants ───────────────────────────────────────
 export const SATS_PER_BTC = 100_000_000n;

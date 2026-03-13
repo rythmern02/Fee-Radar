@@ -1,6 +1,4 @@
-'use client';
-
-import { FeeBreakdown } from '../src/components/FeeRadar/FeeBreakdown';
+import { FeeBreakdown } from '@/src/components/FeeRadar/FeeBreakdown';
 import { Radar, Github, ExternalLink } from 'lucide-react';
 
 export default function Home() {
@@ -8,14 +6,12 @@ export default function Home() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* ─── Ambient Background ──────────────────────────────── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/[0.03] blur-[120px] animate-float" />
+        <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/[0.03] blur-[120px]" />
         <div
-          className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-600/[0.03] blur-[120px] animate-float"
-          style={{ animationDelay: '3s' }}
+          className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-600/[0.03] blur-[120px]"
         />
         <div
-          className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-amber-400/[0.02] blur-[100px] animate-float"
-          style={{ animationDelay: '1.5s' }}
+          className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-amber-400/[0.02] blur-[100px]"
         />
       </div>
 
@@ -23,7 +19,7 @@ export default function Home() {
       <header className="relative z-10 w-full border-b border-zinc-800/50">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 animate-pulse-glow">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
               <Radar className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -59,10 +55,10 @@ export default function Home() {
       {/* ─── Main Content ────────────────────────────────────── */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12">
         {/* Hero */}
-        <div className="text-center mb-10 animate-fade-in max-w-xl">
+        <div className="text-center mb-10 max-w-xl">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-100 mb-3">
             Know the{' '}
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent animate-gradient">
+            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               true cost
             </span>{' '}
             before you bridge
@@ -78,7 +74,7 @@ export default function Home() {
         <FeeBreakdown />
 
         {/* Info cards below the widget */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-lg w-full animate-slide-up" style={{ animationDelay: '0.2s' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 max-w-lg w-full">
           <InfoCard
             emoji="⚡"
             title="Real-Time"
@@ -121,8 +117,7 @@ export default function Home() {
             </a>
           </p>
           <div className="flex items-center gap-3">
-            <StatusDot label="Mempool API" />
-            <StatusDot label="RSK RPC" />
+            <StatusIndicator />
           </div>
         </div>
       </footer>
@@ -152,11 +147,17 @@ function InfoCard({
   );
 }
 
-function StatusDot({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-      <span className="text-[10px] text-zinc-600">{label}</span>
-    </div>
-  );
+/** 
+ * StatusIndicator is a Client Component to show real-time connectivity status 
+ * without forcing the entire page to be a client component.
+ */
+function StatusIndicator() {
+    return (
+        <div className="flex items-center gap-3">
+            <StatusDot label="Mempool API" queryKey="btcFeeRates" />
+            <StatusDot label="RSK RPC" queryKey="rskGasPrice" />
+        </div>
+    );
 }
+
+import { StatusDot } from '@/src/components/FeeRadar/StatusDot';

@@ -31,7 +31,9 @@ export async function fetchBitcoinFeeRates(): Promise<BitcoinFeeRates> {
         if (
             typeof data.fastestFee !== 'number' ||
             typeof data.halfHourFee !== 'number' ||
-            typeof data.hourFee !== 'number'
+            typeof data.hourFee !== 'number' ||
+            (data.economyFee !== undefined && typeof data.economyFee !== 'number') ||
+            (data.minimumFee !== undefined && typeof data.minimumFee !== 'number')
         ) {
             throw new Error('Invalid fee rate response from Mempool API');
         }

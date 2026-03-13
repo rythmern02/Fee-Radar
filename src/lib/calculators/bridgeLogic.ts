@@ -64,6 +64,8 @@ export function selectFeeRate(rates: BitcoinFeeRatesInput, speed: FeeSpeed): num
             return rates.halfHourFee;
         case 'low':
             return rates.economyFee;
+        default:
+            return rates.halfHourFee;
     }
 }
 
@@ -87,6 +89,7 @@ export interface CalculateTotalCostParams {
     btcFeeRates: BitcoinFeeRatesInput;
     rskGasPrice: bigint;
     btcUsd: number | null;
+    flyoverFeePercentage?: number;
 }
 
 export interface TotalCostResult {
@@ -95,6 +98,7 @@ export interface TotalCostResult {
     btcMinerFee: CostItem;
     totalFeeSats: bigint;
     netAmountSats: bigint;
+    feeExceedsAmount: boolean;
     feeDominance: FeeDominance;
     btcFeeRate: number;
     estimatedVBytes: number;
@@ -106,7 +110,7 @@ function satsToUsd(sats: bigint, btcUsd: number | null): number | null {
 }
 
 export function calculateTotalCost(params: CalculateTotalCostParams): TotalCostResult {
-    const { amountSats, speed, bridgeType, btcFeeRates, rskGasPrice, btcUsd } = params;
+    const { amountSats, speed, bridgeType, btcFeeRates, rskGasPrice, btcUsd, flyoverFeePercentage } = params;
 
     // 1. RSK Gas
     const rskGasSats = calculateRskGasCost(rskGasPrice);
@@ -115,7 +119,7 @@ export function calculateTotalCost(params: CalculateTotalCostParams): TotalCostR
     const bridgeFeeSats =
         bridgeType === 'powpeg'
             ? calculatePowPegFee(amountSats)
-            : calculateFlyoverFee(amountSats);
+            : calculateFlyoverFee(amountSats, flyoverFeePercentage);
 
     // 3. BTC Miner fee
     const feeRate = selectFeeRate(btcFeeRates, speed);
@@ -128,8 +132,9 @@ export function calculateTotalCost(params: CalculateTotalCostParams): TotalCostR
     // 5. Apply buffer
     const bufferedTotal = totalFeeSats + applyPercentage(totalFeeSats, FEE_BUFFER_PERCENTAGE);
 
-    // 6. Net amount
-    const netAmountSats = amountSats > bufferedTotal ? amountSats - bufferedTotal : 0n;
+    // 6. Net amount Check
+    const feeExceedsAmount = bufferedTotal >= amountSats;
+    const netAmountSats = feeExceedsAmount ? 0n : amountSats - bufferedTotal;
 
     // 7. Fee percentages
     const totalFeeNum = Number(totalFeeSats);
@@ -175,6 +180,7 @@ export function calculateTotalCost(params: CalculateTotalCostParams): TotalCostR
         },
         totalFeeSats: bufferedTotal,
         netAmountSats,
+        feeExceedsAmount,
         feeDominance: {
             dominantFee: dominant.name,
             percentage: dominant.pct,
@@ -198,6 +204,12 @@ export function validatePegoutAmount(amountSats: bigint): {
         return {
             valid: false,
             error: `Minimum peg-out is 0.004 BTC (${MIN_PEGOUT_SATS.toString()} sats)`,
+        };
+    }
+    if (amountSats > 100n * SATS_PER_BTC) {
+        return {
+            valid: false,
+            error: 'Amount exceeds maximum allowed peg-out size (100 BTC)'
         };
     }
     return { valid: true };

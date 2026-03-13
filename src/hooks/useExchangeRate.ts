@@ -27,8 +27,8 @@ async function fetchBtcUsdRate(): Promise<number> {
         const data = await response.json();
         const price = data?.bitcoin?.usd;
 
-        if (typeof price !== 'number' || price <= 0) {
-            throw new Error('Invalid price data from CoinGecko');
+        if (typeof price !== 'number' || price <= 1000 || price > 1_000_000) {
+            throw new Error(`Invalid price data from CoinGecko: ${price}`);
         }
 
         return price;

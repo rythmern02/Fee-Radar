@@ -40,12 +40,20 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
                 onClick={() => setIsOpen(!isOpen)}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
                         setIsOpen(!isOpen);
+                    }
+                    // NEW-3 fix: Escape key dismissal (WCAG 2.1 SC 1.4.13)
+                    if (e.key === 'Escape') {
+                        e.stopPropagation();
+                        setIsOpen(false);
                     }
                 }}
                 className="cursor-help"
-                aria-describedby={id}
+                aria-describedby={isOpen ? id : undefined}
+                aria-expanded={isOpen}
                 tabIndex={0}
+                role="button"
             >
                 {children}
             </div>

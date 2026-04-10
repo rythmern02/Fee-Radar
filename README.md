@@ -17,7 +17,7 @@ Fee-Radar is a purpose-built React widget that calculates all three layers of co
 
 ## Key Features
 
-- **Multi-Layer Polling:** Simultaneously fetches Rootstock gas prices (via `ethers.js`) and Bitcoin fee rates (via `mempool.space`).
+- **Multi-Layer Polling:** Simultaneously fetches Rootstock gas prices (via native JSON-RPC `fetch`) and Bitcoin fee rates (via `mempool.space`).
 - **Dynamic Bridge Logic:** Calculates both **PowPeg API** (0.2% fixed protocol fee) and **Flyover LPs** (dynamic 0.1-0.3% fast-liquidity fee).
 - **L1 vByte Estimation:** Pure-math calculation estimating the virtual bytes (vBytes) of a legacy P2SH 3-of-5 multisig Bitcoin release transaction.
 - **Fee Dominance Warning:** Intelligently warns users if Bitcoin miner congestion causes L1 fees to exceed 50% of the total cost.
@@ -31,8 +31,9 @@ Built on a modern stack tailored for speed and developer experience:
 
 - **Framework:** Next.js 16 (App Router) + React 19
 - **State & Caching:** TanStack Query (`@tanstack/react-query`)
-- **Web3 Interaction:** `ethers.js` v6
+- **Web3 Interaction:** Native lightweight `fetch` against public nodes (Zero dependency overhead)
 - **Styling:** Tailwind CSS v4 with custom glass-morphism classes and animations
+- **Testing:** Vitest for robust core logic and math validation
 - **Type Safety:** 100% Strict TypeScript
 
 ### 📂 Folder Structure
@@ -97,7 +98,7 @@ The brain of the application located at `src/hooks/useCrossLayerEstimate.ts`. It
 It then passes these real-time values, along with the user's `amount` and selected `speed`, into the pure math calculators and returns a highly structured `FeeBreakdownResult` JSON object.
 
 ### The vByte Estimator
-Located in `src/lib/calculators/btcWeight.ts`. Instead of hardcoding an average fee, this utility programmatically calculates the byte size of a legacy Rootstock PowPeg release transaction (1 P2SH multisig input, 2 P2PKH outputs) ensuring accurate L1 estimation regardless of whether the user chooses Economy, Standard, or Priority routing.
+Located in `src/lib/calculators/btcWeight.ts`. This utility programmatically models the byte size of a Rootstock PowPeg release transaction. It combines empirically calibrated, on-chain verified vByte constants (297 vBytes for standard configs) with dynamic structural component estimators utilizing specific `PUBKEY` and `SIGNATURE` sizes. This ensures a highly accurate L1 calculation regardless of whether the user chooses Economy, Standard, or Priority routing.
 
 ---
 

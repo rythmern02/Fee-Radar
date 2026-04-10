@@ -16,11 +16,23 @@ interface CostRowProps {
     isHighlighted?: boolean;
 }
 
-const ICONS: Record<IconName, React.ReactNode> = {
-    cpu: <Cpu className="h-4 w-4" />,
-    landmark: <Landmark className="h-4 w-4" />,
-    bitcoin: <Bitcoin className="h-4 w-4" />,
-};
+/**
+ * NEW-4 fix: Replaced module-level JSX ICONS record with a factory function.
+ *
+ * Module-level JSX (e.g. `const ICONS = { cpu: <Cpu /> }`) is evaluated at
+ * module parse time, which can cause issues in SSR/testing environments and is
+ * considered non-standard. A factory function is lazy, idiomatic, and safe.
+ */
+function getIcon(name: IconName): React.ReactNode {
+    switch (name) {
+        case 'cpu':
+            return <Cpu className="h-4 w-4" />;
+        case 'landmark':
+            return <Landmark className="h-4 w-4" />;
+        case 'bitcoin':
+            return <Bitcoin className="h-4 w-4" />;
+    }
+}
 
 export const CostRow = memo(function CostRow({
     item,
@@ -29,7 +41,7 @@ export const CostRow = memo(function CostRow({
     accentColor = 'bg-zinc-600',
     isHighlighted = false,
 }: CostRowProps) {
-    const icon = ICONS[iconName];
+    const icon = getIcon(iconName);
 
     return (
         <div

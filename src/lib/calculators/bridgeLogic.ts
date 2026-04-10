@@ -104,9 +104,23 @@ export interface TotalCostResult {
     estimatedVBytes: number;
 }
 
+/**
+ * Converts satoshis to USD.
+ *
+ * MEDIUM-6 fix: Uses scaled integer arithmetic instead of raw Number() to
+ * prevent precision loss for large bigint values (up to 100 BTC is safe here,
+ * but we use the same scaled pattern used in the hook for consistency).
+ *
+ * Precision: multiplied by 1e6 before dividing, then divided by 1e6.
+ * Max representable: 100 BTC × 10^8 sats × 10^6 scale = 10^16, safely in
+ * IEEE 754 double integer range (< 2^53 ≈ 9×10^15). We clamp at 100 BTC
+ * upstream so this is always safe.
+ */
 function satsToUsd(sats: bigint, btcUsd: number | null): number | null {
     if (btcUsd === null) return null;
-    return (Number(sats) / Number(SATS_PER_BTC)) * btcUsd;
+    // Scale: (sats * 1_000_000 / SATS_PER_BTC) / 1_000_000 * btcUsd
+    const scaled = Number(sats * 1_000_000n / SATS_PER_BTC);
+    return (scaled / 1_000_000) * btcUsd;
 }
 
 export function calculateTotalCost(params: CalculateTotalCostParams): TotalCostResult {

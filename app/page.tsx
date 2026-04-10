@@ -1,17 +1,28 @@
-import { FeeBreakdown } from '@/src/components/FeeRadar/FeeBreakdown';
 import { Radar, Github, ExternalLink } from 'lucide-react';
+import { FeeBreakdown } from '@/src/components/FeeRadar/FeeBreakdown';
+import { StatusIndicator } from '@/src/components/FeeRadar/StatusIndicator';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* ─── Ambient Background ──────────────────────────────── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/[0.03] blur-[120px]" />
+      {/*
+        MEDIUM-10: Replaced blur-[120px] with blur-[80px] on GPU-composited
+        elements. The `will-change-transform` hint lets the browser create
+        a separate compositor layer, avoiding layout-blocking filter recalcs.
+      */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div
-          className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-600/[0.03] blur-[120px]"
+          className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/[0.04] blur-[80px]"
+          style={{ willChange: 'transform' }}
         />
         <div
-          className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-amber-400/[0.02] blur-[100px]"
+          className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-600/[0.04] blur-[80px]"
+          style={{ willChange: 'transform' }}
+        />
+        <div
+          className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-amber-400/[0.03] blur-[60px]"
+          style={{ willChange: 'transform' }}
         />
       </div>
 
@@ -45,6 +56,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              aria-label="Rootstock GitHub"
             >
               <Github className="h-4 w-4" />
             </a>
@@ -117,6 +129,7 @@ export default function Home() {
             </a>
           </p>
           <div className="flex items-center gap-3">
+            {/* StatusIndicator is a Client Component rendered inside this Server Component */}
             <StatusIndicator />
           </div>
         </div>
@@ -138,7 +151,7 @@ function InfoCard({
 }) {
   return (
     <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800/30 text-center hover:border-zinc-700/50 transition-all duration-300">
-      <span className="text-xl">{emoji}</span>
+      <span className="text-xl" aria-hidden="true">{emoji}</span>
       <h3 className="text-sm font-semibold text-zinc-200 mt-2">{title}</h3>
       <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
         {description}
@@ -146,18 +159,3 @@ function InfoCard({
     </div>
   );
 }
-
-/** 
- * StatusIndicator is a Client Component to show real-time connectivity status 
- * without forcing the entire page to be a client component.
- */
-function StatusIndicator() {
-    return (
-        <div className="flex items-center gap-3">
-            <StatusDot label="Mempool API" queryKey="btcFeeRates" />
-            <StatusDot label="RSK RPC" queryKey="rskGasPrice" />
-        </div>
-    );
-}
-
-import { StatusDot } from '@/src/components/FeeRadar/StatusDot';

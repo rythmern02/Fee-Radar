@@ -115,17 +115,23 @@ export function FeeBreakdown() {
 
             <CardContent className="space-y-5 pt-0">
                 {/* ─── Amount Input ────────────────────────────────────── */}
+                {/* NEW-2 fix: label has htmlFor matching the input's id */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                    <label
+                        htmlFor="amount-input"
+                        className="text-xs font-medium text-zinc-400 uppercase tracking-wider"
+                    >
                         Amount to Transfer
                     </label>
                     <div className="relative">
                         <input
+                            id="amount-input"
                             type="text"
                             inputMode="decimal"
                             value={amount}
                             onChange={handleAmountChange}
                             placeholder="0.00"
+                            aria-describedby={validationError ? 'amount-error' : undefined}
                             className={`
                 w-full h-14 pl-4 pr-20 rounded-xl
                 bg-zinc-800/50 border text-lg font-mono text-zinc-100
@@ -150,7 +156,7 @@ export function FeeBreakdown() {
                     )}
                     {/* Validation error */}
                     {validationError && (
-                        <p className="text-xs text-red-400 pl-1 flex items-center gap-1 animate-fade-in">
+                        <p id="amount-error" role="alert" className="text-xs text-red-400 pl-1 flex items-center gap-1 animate-fade-in">
                             <AlertTriangle className="h-3 w-3" />
                             {validationError}
                         </p>
@@ -158,10 +164,12 @@ export function FeeBreakdown() {
                 </div>
 
                 {/* ─── Speed Selector ──────────────────────────────────── */}
-                <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                {/* Speed uses a group of buttons — no label/input association required.
+                    Using a fieldset+legend for semantic grouping (WCAG). */}
+                <fieldset className="space-y-2 border-0 p-0 m-0">
+                    <legend className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
                         Bitcoin Confirmation Speed
-                    </label>
+                    </legend>
                     <div className="grid grid-cols-3 gap-2">
                         {SPEED_OPTIONS.map((option) => (
                             <button
@@ -182,7 +190,7 @@ export function FeeBreakdown() {
                             </button>
                         ))}
                     </div>
-                </div>
+                </fieldset>
 
                 {/* ─── Bridge Type Selector ────────────────────────────── */}
                 <div className="flex items-center justify-between">
@@ -325,9 +333,9 @@ export function FeeBreakdown() {
                                 {/* Net Amount */}
                                 <div className={`
                                   flex items-center justify-between p-3 -mx-3 rounded-xl border transition-all
-                                  ${data.netAmountSats === 0n 
-                                    ? 'bg-red-500/5 border-red-500/10' 
-                                    : 'bg-emerald-500/5 border-emerald-500/10'}
+                                  ${data.netAmountSats === 0n
+                                        ? 'bg-red-500/5 border-red-500/10'
+                                        : 'bg-emerald-500/5 border-emerald-500/10'}
                                 `}>
                                     <div className="flex items-center gap-2">
                                         <ArrowRight className={`h-4 w-4 ${data.netAmountSats === 0n ? 'text-red-400' : 'text-emerald-400'}`} />

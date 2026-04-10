@@ -72,16 +72,27 @@ export function formatPercentage(value: number): string {
 }
 
 // ─── Validation ─────────────────────────────────────────────────
+/**
+ * Returns true if `input` is a valid BTC amount string.
+ *
+ * Security fix: Added upper-bound check of 100 BTC to match the cap
+ * enforced by validatePegoutAmount in bridgeLogic.ts. Previously,
+ * isValidBtcAmount("999") returned true, allowing the value through
+ * to the hook before being caught further downstream.
+ */
 export function isValidBtcAmount(input: string): boolean {
     if (!input || input.trim() === '') return false;
     if (/e/i.test(input)) return false;
     const num = Number(input);
     if (isNaN(num) || num <= 0) return false;
+    // Upper bound: 100 BTC (matches validatePegoutAmount cap in bridgeLogic.ts)
+    if (num > 100) return false;
     // Check decimal places (max 8)
     const parts = input.split('.');
     if (parts[1] && parts[1].length > 8) return false;
     return true;
 }
+
 
 // ─── BigInt Helpers ─────────────────────────────────────────────
 export function bigIntMax(a: bigint, b: bigint): bigint {

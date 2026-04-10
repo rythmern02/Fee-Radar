@@ -5,6 +5,24 @@
 import type { BitcoinFeeRates } from '../types';
 import { MEMPOOL_API_BASE } from '../lib/constants';
 
+/** Maximum sane fee rate: 10,000 sats/vB (extremely high congestion ceiling) */
+const MAX_SANE_FEE_RATE = 10_000;
+
+/**
+ * Validates that a fee rate value is a finite positive integer within range.
+ *
+ * MEDIUM-1 / Security fix: Added range checks.
+ * Negative, NaN, and extreme values are now rejected.
+ */
+function isValidFeeRate(value: unknown): value is number {
+    return (
+        typeof value === 'number' &&
+        Number.isFinite(value) &&
+        value > 0 &&
+        value <= MAX_SANE_FEE_RATE
+    );
+}
+
 /**
  * Fetch current recommended fee rates from Mempool.space.
  *
@@ -27,15 +45,21 @@ export async function fetchBitcoinFeeRates(): Promise<BitcoinFeeRates> {
 
         const data = await response.json();
 
-        // Validate response shape
+        // MEDIUM-1 fix: Validate required fields with range checks (positive, finite, ≤ 10 000)
         if (
-            typeof data.fastestFee !== 'number' ||
-            typeof data.halfHourFee !== 'number' ||
-            typeof data.hourFee !== 'number' ||
-            (data.economyFee !== undefined && typeof data.economyFee !== 'number') ||
-            (data.minimumFee !== undefined && typeof data.minimumFee !== 'number')
+            !isValidFeeRate(data.fastestFee) ||
+            !isValidFeeRate(data.halfHourFee) ||
+            !isValidFeeRate(data.hourFee)
         ) {
-            throw new Error('Invalid fee rate response from Mempool API');
+            throw new Error('Invalid fee rate response from Mempool API (out-of-range or non-numeric)');
+        }
+
+        // Optional fields: validate only if present
+        if (data.economyFee !== undefined && !isValidFeeRate(data.economyFee)) {
+            throw new Error('Invalid economyFee value from Mempool API');
+        }
+        if (data.minimumFee !== undefined && !isValidFeeRate(data.minimumFee)) {
+            throw new Error('Invalid minimumFee value from Mempool API');
         }
 
         return {

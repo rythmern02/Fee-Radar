@@ -108,13 +108,16 @@ export interface TotalCostResult {
  * Converts satoshis to USD.
  *
  * MEDIUM-6 fix: Uses scaled integer arithmetic instead of raw Number() to
- * prevent precision loss for large bigint values (up to 100 BTC is safe here,
- * but we use the same scaled pattern used in the hook for consistency).
+ * prevent precision loss for large bigint values.
  *
- * Precision: multiplied by 1e6 before dividing, then divided by 1e6.
- * Max representable: 100 BTC × 10^8 sats × 10^6 scale = 10^16, safely in
- * IEEE 754 double integer range (< 2^53 ≈ 9×10^15). We clamp at 100 BTC
- * upstream so this is always safe.
+ * Precision math (why this is safe):
+ *   - validatePegoutAmount caps amountSats at 100 BTC = 1e10 sats.
+ *   - Pre-Number() value: sats * 1e6n / SATS_PER_BTC(=1e8n) = sats / 100.
+ *   - At the cap, that is 1e10 / 100 = 1e8 — well within Number.MAX_SAFE_INTEGER
+ *     (2^53 ≈ 9.007e15).
+ *   - The intermediate bigint multiplication (sats * 1e6) reaches up to 1e16
+ *     (> 2^53), but that division is performed in bigint space *before* the
+ *     Number() cast, so no precision is lost.
  */
 function satsToUsd(sats: bigint, btcUsd: number | null): number | null {
     if (btcUsd === null) return null;

@@ -13,7 +13,7 @@ interface TooltipProps {
 export function Tooltip({ content, children, side = 'top', className }: TooltipProps) {
     const [isOpen, setIsOpen] = useState(false);
     const tooltipRef = useRef<HTMLDivElement>(null);
-    const triggerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
     const id = useId();
 
     useEffect(() => {
@@ -33,30 +33,31 @@ export function Tooltip({ content, children, side = 'top', className }: TooltipP
 
     return (
         <div className="relative inline-flex">
-            <div
+            {/*
+              Native <button> instead of <div role="button">: stronger semantics,
+              free focus/keyboard handling, automatic activation on Space/Enter.
+              type="button" prevents accidental form submission when the tooltip
+              is nested inside a <form>.
+            */}
+            <button
                 ref={triggerRef}
+                type="button"
                 onMouseEnter={() => setIsOpen(true)}
                 onMouseLeave={() => setIsOpen(false)}
                 onClick={() => setIsOpen(!isOpen)}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setIsOpen(!isOpen);
-                    }
                     // NEW-3 fix: Escape key dismissal (WCAG 2.1 SC 1.4.13)
                     if (e.key === 'Escape') {
                         e.stopPropagation();
                         setIsOpen(false);
                     }
                 }}
-                className="cursor-help"
+                className="cursor-help inline-flex items-center bg-transparent p-0 border-0 text-inherit"
                 aria-describedby={isOpen ? id : undefined}
                 aria-expanded={isOpen}
-                tabIndex={0}
-                role="button"
             >
                 {children}
-            </div>
+            </button>
             {isOpen && (
                 <div
                     ref={tooltipRef}

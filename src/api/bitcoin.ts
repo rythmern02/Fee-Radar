@@ -6,15 +6,17 @@ import type { BitcoinFeeRates } from '../types';
 import { MEMPOOL_API_BASE } from '../lib/constants';
 
 /** Maximum sane fee rate: 10,000 sats/vB (extremely high congestion ceiling) */
-const MAX_SANE_FEE_RATE = 10_000;
+export const MAX_SANE_FEE_RATE = 10_000;
 
 /**
- * Validates that a fee rate value is a finite positive integer within range.
+ * Validates that a fee rate value is a finite positive number within range.
  *
  * MEDIUM-1 / Security fix: Added range checks.
- * Negative, NaN, and extreme values are now rejected.
+ * Negative, NaN, Infinity, zero, and extreme values are all rejected.
+ *
+ * Exported so the boundary contract can be unit-tested directly.
  */
-function isValidFeeRate(value: unknown): value is number {
+export function isValidFeeRate(value: unknown): value is number {
     return (
         typeof value === 'number' &&
         Number.isFinite(value) &&

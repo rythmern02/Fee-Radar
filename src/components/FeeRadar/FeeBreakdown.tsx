@@ -8,7 +8,6 @@ import {
     ArrowDownUp,
     AlertTriangle,
     RefreshCw,
-    Landmark,
     Bitcoin,
     ChevronDown,
     Minus,
@@ -25,31 +24,37 @@ import { TooltipInfo } from './TooltipInfo';
 import { formatBtc, formatUsd, isValidBtcAmount, weiToGwei } from '../../lib/utils';
 import { MIN_PEGOUT_SATS } from '../../lib/constants';
 
-const SPEED_OPTIONS: {
+type SpeedIconName = 'hourglass' | 'clock' | 'zap';
+
+interface SpeedOption {
     value: FeeSpeed;
     label: string;
     sublabel: string;
-    icon: React.ReactNode;
-}[] = [
-        {
-            value: 'low',
-            label: 'Economy',
-            sublabel: '~60 min',
-            icon: <Hourglass className="h-3.5 w-3.5" />,
-        },
-        {
-            value: 'medium',
-            label: 'Standard',
-            sublabel: '~30 min',
-            icon: <Clock className="h-3.5 w-3.5" />,
-        },
-        {
-            value: 'high',
-            label: 'Priority',
-            sublabel: '~10 min',
-            icon: <Zap className="h-3.5 w-3.5" />,
-        },
-    ];
+    iconName: SpeedIconName;
+}
+
+const SPEED_OPTIONS: SpeedOption[] = [
+    { value: 'low', label: 'Economy', sublabel: '~60 min', iconName: 'hourglass' },
+    { value: 'medium', label: 'Standard', sublabel: '~30 min', iconName: 'clock' },
+    { value: 'high', label: 'Priority', sublabel: '~10 min', iconName: 'zap' },
+];
+
+/**
+ * Factory for speed-option icons.
+ *
+ * Mirrors the CostRow getIcon() pattern. Storing JSX at module-eval time can
+ * misbehave under SSR / test bundlers; a lazy factory is the safe form.
+ */
+function getSpeedIcon(name: SpeedIconName): React.ReactNode {
+    switch (name) {
+        case 'hourglass':
+            return <Hourglass className="h-3.5 w-3.5" />;
+        case 'clock':
+            return <Clock className="h-3.5 w-3.5" />;
+        case 'zap':
+            return <Zap className="h-3.5 w-3.5" />;
+    }
+}
 
 const BRIDGE_OPTIONS: { value: BridgeType; label: string }[] = [
     { value: 'powpeg', label: 'PowPeg' },
@@ -184,7 +189,7 @@ export function FeeBreakdown() {
                                     }
                                 `}
                             >
-                                {option.icon}
+                                {getSpeedIcon(option.iconName)}
                                 <span className="text-xs font-semibold">{option.label}</span>
                                 <span className="text-[10px] opacity-70">{option.sublabel}</span>
                             </button>

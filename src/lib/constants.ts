@@ -48,7 +48,6 @@ export const TX_INPUT_SCRIPTSIG_LENGTH_SIZE = 1;
 export const TX_OUTPUT_VALUE_SIZE = 8;
 export const TX_OUTPUT_SCRIPT_LENGTH_SIZE = 1;
 export const TX_OUTPUT_P2PKH_SCRIPT_SIZE = 25;
-export const TX_OUTPUT_P2WPKH_SCRIPT_SIZE = 22;
 
 // ─── RSK Gas ────────────────────────────────────────────────────
 // Gas limit for a peg-out (releaseBtc) operation on RSK
